@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ja" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gitの流れを体験しよう｜GitLab フローをボタンで学ぶ</title>
+<meta name="description" content="GitLab のふつうの開発フロー（クローン、ブランチ、コミット、push、マージリクエスト、CI、レビュー、マージ）を、図とボタンで体験できる学習用シミュレーションです。">
+<script>try{var t=localStorage.getItem('rm_theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#sim">本文へ移動</a>
+<header class="top">
+  <div class="top-text">
+    <h1>Git の流れを体験しよう</h1>
+    <p class="sub">GitLab のふつうの開発フローを、ボタンを押しながら目で見て学びます。</p>
+  </div>
+  <button id="themeBtn" class="icon-btn" type="button" aria-label="表示テーマを切り替える">
+    <svg class="i-sun" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+    <svg class="i-moon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/></svg>
+  </button>
+</header>
+
+<div class="tabs" role="tablist" aria-label="表示の切り替え">
+  <button role="tab" id="tabSim" aria-selected="true" aria-controls="sim" type="button">シミュレーター</button>
+  <button role="tab" id="tabTrouble" aria-selected="false" aria-controls="trouble" type="button" tabindex="-1">よくあるつまずき</button>
+</div>
+
+<main id="sim" role="tabpanel" aria-labelledby="tabSim">
+  <details class="intro" id="intro" open>
+    <summary>まず、Git と GitLab って何？（はじめに）</summary>
+    <p>Git は、ファイルの変更を「記録」して、あとから戻したり、みんなの作業を合体させたりできる仕組みです。GitLab は、その記録を置いておくネット上の場所です。</p>
+    <p>ふつうの流れは4つ。(1) 自分専用の「ブランチ」で作業する、(2) GitLab に送る、(3)「マージリクエスト」で確認してもらう、(4) OKなら本流の main に合流する。下のボタンを順番に押して、絵がどう変わるか見てみましょう。</p>
+    <p class="intro-places"><b>3つの場所</b>があります。<span>リモート(GitLab)＝みんなで共有する本体</span><span>ローカル＝自分のPCの中の履歴</span><span>作業フォルダ＝実際にファイルを編集する所</span></p>
+  </details>
+
+  <div class="grid">
+    <div class="toolbar" id="toolbar">
+      <div class="prog" aria-label="進み具合"><div class="prog-bar"><i id="progFill"></i></div><span id="progText">0 / 10</span></div>
+      <p class="tb-last" id="tbLast"></p>
+      <div class="tb-row">
+        <button class="btn primary" id="nextBtn" type="button">つぎへ</button>
+        <button class="btn" id="autoBtn" type="button">おまかせ再生</button>
+        <button class="btn" id="undoBtn" type="button">ひとつ戻る</button>
+        <button class="btn" id="resetBtn" type="button">リセット</button>
+      </div>
+    </div>
+
+    <section class="explain" id="explain" aria-live="polite" aria-label="いまの操作の説明">
+      <div class="ex-top"><span class="ex-tag" id="exTag">はじめに</span></div>
+      <pre class="cmd" id="exCmd" hidden></pre>
+      <h2 class="ex-title" id="exTitle"></h2>
+      <div class="ex-text" id="exText"></div>
+      <p class="note" id="note" role="status" hidden></p>
+      <p class="hint" id="exHint"></p>
+    </section>
+
+    <aside class="steps" aria-label="手順と操作ボタン">
+      <details id="stepsDetails" open>
+        <summary><span>手順と操作ボタン</span><small id="stepsNow"></small></summary>
+        <ol id="stepList" class="step-list"></ol>
+      </details>
+    </aside>
+
+    <div class="lanes">
+      <article class="lane" id="laneRemote" aria-labelledby="hRemote">
+        <header class="lane-h">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 18h11a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.2 9.2 4.5 4.5 0 0 0 6 18z"/></svg>
+          <div><h2 id="hRemote">リモート (GitLab)</h2><p>みんなで共有する本体。サーバー上にあります。</p></div>
+        </header>
+        <div class="graph-box" id="boxRemote"><svg id="gRemote" role="img" aria-label="リモートのコミットグラフ"></svg></div>
+        <p class="cap" id="capRemote">丸を押すとコミットの内容が見えます。</p>
+        <section class="mr" id="mr" hidden aria-label="GitLab のマージリクエスト画面（まねした表示）">
+          <div class="mr-bar"><b>GitLab</b><span>マージリクエスト</span><span class="badge" id="mrBadge">新規</span></div>
+          <div class="mr-body">
+            <label class="fld"><span>タイトル</span><input id="mrTitle" type="text" maxlength="60" value="ログインボタンを追加"></label>
+            <p class="mr-br"><code id="mrSrc">feature/x</code><svg viewBox="0 0 24 10" width="28" height="12" aria-hidden="true"><path d="M0 5h20M15 1l5 4-5 4" fill="none" stroke="currentColor" stroke-width="2"/></svg><code>main</code><small id="mrCount"></small></p>
+            <label class="fld"><span>説明</span><textarea id="mrDesc" rows="2" maxlength="140">ログイン画面にボタンを追加しました。動作確認をお願いします。</textarea></label>
+            <div id="mrAfter" hidden>
+              <div class="pipe" id="pipe">
+                <div class="pipe-h"><b>パイプライン</b><small id="pipeId"></small><span id="pipeState"></span></div>
+                <div class="stages">
+                  <div class="stage" id="stBuild" data-state="idle"><span class="ic"><svg class="s-idle" viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/></svg><svg class="s-run" viewBox="0 0 16 16" width="16" height="16"><path d="M8 2a6 6 0 1 1-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg><svg class="s-ok" viewBox="0 0 16 16" width="16" height="16"><path d="M2 8.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.5"/></svg><svg class="s-ng" viewBox="0 0 16 16" width="16" height="16"><path d="M3 3l10 10M13 3L3 13" fill="none" stroke="currentColor" stroke-width="2.5"/></svg></span><span class="nm">build</span><span class="bar"><i></i></span></div>
+                  <div class="stage" id="stTest" data-state="idle"><span class="ic"><svg class="s-idle" viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/></svg><svg class="s-run" viewBox="0 0 16 16" width="16" height="16"><path d="M8 2a6 6 0 1 1-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg><svg class="s-ok" viewBox="0 0 16 16" width="16" height="16"><path d="M2 8.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.5"/></svg><svg class="s-ng" viewBox="0 0 16 16" width="16" height="16"><path d="M3 3l10 10M13 3L3 13" fill="none" stroke="currentColor" stroke-width="2.5"/></svg></span><span class="nm">test</span><span class="bar"><i></i></span></div>
+                </div>
+              </div>
+              <div class="thread" id="thread" hidden>
+                <p class="th-h"><b>レビュアー</b><span class="badge" id="thState">未解決</span></p>
+                <p class="th-t">ボタンの id が <code>login</code> だと他と紛らわしいので、<code>login-button</code> のように分かりやすい名前にしてください。</p>
+                <p class="th-n" id="thNote"></p>
+              </div>
+              <ul class="checks" id="checks"></ul>
+              <p class="ready" id="mrReady"></p>
+            </div>
+          </div>
+        </section>
+      </article>
+
+      <article class="lane" id="laneLocal" aria-labelledby="hLocal">
+        <header class="lane-h">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="5" width="16" height="11"/><path d="M2 19h20"/></svg>
+          <div><h2 id="hLocal">自分のPC：ローカルリポジトリ</h2><p>自分のPCの中にある履歴。ここでコミットします。</p></div>
+        </header>
+        <div class="graph-box" id="boxLocal"><svg id="gLocal" role="img" aria-label="ローカルのコミットグラフ"></svg><p class="empty" id="emptyLocal">まだありません。<br>git clone するとここにコピーができます。</p></div>
+        <p class="cap" id="capLocal">丸の点線の輪は「まだ GitLab に送っていないコミット」です。</p>
+      </article>
+
+      <article class="lane" id="laneWork" aria-labelledby="hWork">
+        <header class="lane-h">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h7l2 2h9v11H3z"/></svg>
+          <div><h2 id="hWork">作業フォルダ / ステージ</h2><p>ファイルを編集する場所。ステージに載せたものが次のコミットになります。</p></div>
+        </header>
+        <p class="empty-w" id="emptyWork">まだありません。git clone すると作業フォルダができます。</p>
+        <div id="workBody" hidden>
+          <p class="curbr">いまのブランチ：<code id="curBranch">main</code></p>
+          <div class="zone" id="zoneWork">
+            <h3>作業フォルダ</h3>
+            <div class="file" id="fileCard" data-state="clean">
+              <div class="f-h"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/></svg><b>login.html</b><span class="f-tag" id="fileTag">変更なし</span></div>
+              <pre class="diff" id="fileDiff" hidden></pre>
+            </div>
+          </div>
+          <p class="zarrow"><svg viewBox="0 0 16 22" width="14" height="20" aria-hidden="true"><path d="M8 0v18M2 12l6 8 6-8" fill="none" stroke="currentColor" stroke-width="2"/></svg><code>git add</code></p>
+          <div class="zone" id="zoneStage">
+            <h3>ステージ <small>（次のコミットに入れる物）</small></h3>
+            <div class="file staged" id="stageCard" hidden>
+              <div class="f-h"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/></svg><b>login.html</b><span class="f-tag">ステージ済み</span></div>
+              <pre class="diff" id="stageDiff"></pre>
+            </div>
+            <p class="stage-empty" id="stageEmpty">空っぽです。</p>
+          </div>
+          <p class="zarrow"><svg viewBox="0 0 16 22" width="14" height="20" aria-hidden="true"><path d="M8 0v18M2 12l6 8 6-8" fill="none" stroke="currentColor" stroke-width="2"/></svg><code>git commit</code><small>ローカルリポジトリへ</small></p>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <details class="gloss" id="gloss">
+    <summary>用語集（わからない言葉はここ）</summary>
+    <dl>
+      <dt>リポジトリ</dt><dd>ファイルと、その変更の履歴をまとめて入れておく入れ物。GitLab 上にあるものが「リモート」、自分のPCにあるものが「ローカル」。</dd>
+      <dt>クローン (clone)</dt><dd>GitLab 上のリポジトリを、履歴ごと自分のPCにコピーすること。</dd>
+      <dt>ブランチ</dt><dd>履歴の「枝」。main を壊さずに、自分専用の場所で作業するために作ります。</dd>
+      <dt>コミット</dt><dd>変更をひとまとめにして履歴に残すこと。図の丸ひとつ。英数字7文字は、コミットの名札(ハッシュ)です。</dd>
+      <dt>ステージ (add)</dt><dd>「この変更を次のコミットに入れます」と選んで置いておく場所。</dd>
+      <dt>push / pull / fetch</dt><dd>push は手元のコミットを GitLab へ送る、pull は GitLab の最新を手元に取り込む、fetch は取り込まずに「見に行くだけ」。</dd>
+      <dt>マージリクエスト (MR)</dt><dd>「このブランチを main に入れてもいい？」というチームへの依頼ページ。確認とコメントの場でもあります。</dd>
+      <dt>CI / パイプライン</dt><dd>push のたびに自動でビルドやテストを走らせ、壊れていないか確認する仕組み。</dd>
+      <dt>マージ</dt><dd>ブランチの変更を main に合流させること。「マージコミット」は合流の印、「スカッシュ」は複数のコミットを1つにまとめて入れる方法です。</dd>
+      <dt>rebase</dt><dd>自分のコミットを、最新の main の先頭に付け替えること。履歴が一直線になります。</dd>
+    </dl>
+  </details>
+</main>
+
+<main id="trouble" role="tabpanel" aria-labelledby="tabTrouble" hidden>
+  <section class="intro"><h2>よくあるつまずき</h2><p>最初はみんな通る道です。あわてず、まず <code>git status</code> で状況を見ましょう。</p></section>
+  <div class="cards">
+    <article class="card"><h3>1. 衝突（コンフリクト）が出た</h3>
+      <p>同じ場所をほかの人も変えていると、Git はどちらが正しいか決められず、ファイルに目印を書き込んで止まります。</p>
+<pre class="code">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+ボタン名：ログイン
+=======
+ボタン名：サインイン
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/login-button</pre>
+      <p>やること：ファイルを開いて、残したい内容に書き直し、目印の行（&lt;&lt;&lt;、===、&gt;&gt;&gt;）を消します。そのあと次を実行します。</p>
+<pre class="code">git add login.html
+git rebase --continue    # merge の場合は git commit</pre></article>
+    <article class="card"><h3>2. ブランチを切り替え忘れた</h3>
+      <p>main の上で作業してしまった！ でも大丈夫。まだ push していなければ直せます。</p>
+      <p>まだコミット前なら、そのまま新しいブランチを作れば変更はついてきます。</p>
+<pre class="code">git switch -c feature/login-button</pre>
+      <p>main にコミットしてしまった後（push 前）は、枝を作ってから main を GitLab の状態に戻します。</p>
+<pre class="code">git branch feature/login-button
+git reset --hard origin/main   # main を戻す（push前のみ）
+git switch feature/login-button</pre></article>
+    <article class="card"><h3>3. push が rejected（拒否）された</h3>
+      <p><code>! [rejected] ... (fetch first)</code> と出たら、GitLab 側に、手元にないコミットがあるということ。ほかの人が先に push した合図です。</p>
+      <p>やること：先に取り込んでから、もう一度 push します。</p>
+<pre class="code">git pull --rebase
+git push</pre>
+      <p>無理やり上書きする <code>--force</code> は、みんなの作業を消すことがあるので、慣れるまで使わないのが安全です。</p></article>
+  </div>
+</main>
+
+<footer class="foot">
+  <p>これは学習用のシミュレーションで、本物の Git ではありません。コマンドや画面は、仕組みを理解しやすいように簡単にしています。</p>
+  <p>GitLab は GitLab Inc. の商標です。このページは非公式で、関係はありません。</p>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
